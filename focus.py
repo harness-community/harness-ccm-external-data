@@ -1,5 +1,6 @@
 from typing import Dict, Sequence
 from collections import defaultdict
+from json import dumps
 
 import pandas as pd
 
@@ -35,11 +36,13 @@ class Focus:
         seperator: str = ",",
         skip_rows: int | Sequence[int] = None,
         cost_multiplier: float = 1.0,
+        converters: Dict[str, callable] = {},
         validate: bool = True,
     ):
         self.platform = platform
         self.mapping = mapping
         self.cost_multiplier = cost_multiplier
+        self.converters = converters
         self.focus_content: pd.DataFrame = None
 
         # restrict fields to ones supported by ccm
@@ -52,13 +55,15 @@ class Focus:
                     )
                     del mapping[field]
 
-        cost_multiplier_func = lambda x: pd.to_numeric(x) * cost_multiplier
+        baseline_converters = {
+            "EffectiveCost": lambda x: pd.to_numeric(x) * cost_multiplier
+        }
         self.billing_content = pd.read_csv(
             filename,
             sep=seperator,
             engine="python",
             skiprows=skip_rows,
-            converters={"EffectiveCost": cost_multiplier_func},
+            converters={**baseline_converters, **converters},
         )
 
     def render(self) -> pd.DataFrame:

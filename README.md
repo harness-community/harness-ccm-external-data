@@ -39,6 +39,10 @@ my_data = Focus(
     cost_multiplier=0.95
     # if the csv is in a non-standard format
     seperator=";"
+    # apply a function to any column value
+    converters={
+        "ChargeCategory": lambda x: "SomeValue"
+    }
 )
 ```
 
