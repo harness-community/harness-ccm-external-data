@@ -11,6 +11,7 @@ class Provider:
         provider_type: str = "CUSTOM",
         invoice_period: str = "MONTHLY",
         harness_account: str = getenv("HARNESS_ACCOUNT_ID"),
+        harness_url: str = getenv("HARNESS_URL"),
         harness_platform_api_key: str = getenv("HARNESS_PLATFORM_API_KEY"),
     ):
         self.datasource = datasource
@@ -18,13 +19,16 @@ class Provider:
         self.provider_type = provider_type
         self.invoice_period = invoice_period
         self.harness_account = harness_account
+        self.harness_url = harness_url
         self.harness_platform_api_key = harness_platform_api_key
 
         # load in uuid if provider already exists, otherwise create one
         if existing_providers := [
             x
             for x in Provider.get_providers(
-                self.harness_account, self.harness_platform_api_key
+                self.harness_account,
+                self.harness_url,
+                self.harness_platform_api_key,
             )
             if x["providerName"] == self.provider
         ]:
@@ -38,7 +42,7 @@ class Provider:
         """
 
         resp = post(
-            "https://app.harness.io/gateway/ccm/api/externaldata/provider",
+            f"https://{self.harness_url}/gateway/ccm/api/externaldata/provider",
             headers={"x-api-key": self.harness_platform_api_key},
             params={
                 "routingId": self.harness_account,
@@ -59,24 +63,24 @@ class Provider:
         self.uuid = resp.json()["data"]["uuid"]
 
         return self.uuid
-    
-    def delete(self):
 
+    def delete(self):
         resp = delete(
-            f"https://app.harness.io/gateway/ccm/api/externaldata/provider/{self.uuid}",
+            f"https://{self.harness_url}/gateway/ccm/api/externaldata/provider/{self.uuid}",
             headers={"x-api-key": self.harness_platform_api_key},
             params={
                 "routingId": self.harness_account,
                 "accountIdentifier": self.harness_account,
-            }
+            },
         )
 
         resp.raise_for_status()
 
         self.uuid = None
-    
+
     def get_providers(
         harness_account: str = getenv("HARNESS_ACCOUNT_ID"),
+        harness_url: str = getenv("HARNESS_URL"),
         harness_platform_api_key: str = getenv("HARNESS_PLATFORM_API_KEY"),
     ):
         """
@@ -85,7 +89,7 @@ class Provider:
         """
 
         resp = post(
-            "https://app.harness.io/gateway/ccm/api/externaldata/provider/list",
+            f"https://{harness_url}/gateway/ccm/api/externaldata/provider/list",
             headers={"x-api-key": harness_platform_api_key},
             params={"routingId": harness_account, "accountIdentifier": harness_account},
             json={},
