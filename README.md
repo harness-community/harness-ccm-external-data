@@ -8,7 +8,7 @@ the project is split into several parts:
 
 ## loading data
 
-when loading in a billing export we can apply a few modifications of the data to prepare it for ingeston into harness.
+when loading in a billing export we can apply a few modifications of the data to prepare it for ingestion into harness.
 
 first, we convert any non-focus fields to their focus equivalent. this is done by providing a map of focus fields to their corresponding non-focus fields.
 
@@ -20,7 +20,7 @@ mapping = {
 }
 ```
 
-next we create a `Focus` object, specifying the platform, local billing export file, field mappings (if needed) and any data modificaitons needed:
+next we create a `Focus` object, specifying the platform, local billing export file, field mappings (if needed) and any data modifications needed:
 
 ```python
 my_data = Focus(
@@ -38,10 +38,10 @@ my_data = Focus(
     # apply a multiplier to the cost (account for discounts not shown in the export?)
     cost_multiplier=0.95
     # if the csv is in a non-standard format
-    seperator=";"
+    separator=";"
     # apply a function to any column value
     converters={
-        "ChargeCategory": lambda x: "SomeValue"
+        "ChargeCategory": lambda x: lower(x)
     }
 )
 ```

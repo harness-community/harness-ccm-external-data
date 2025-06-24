@@ -1,6 +1,7 @@
 from focus import Focus, HARNESS_FIELDS
 
 import pandas as pd
+import numpy as np
 
 SAMPLE_DATA = "focus_sample.csv"
 
@@ -20,11 +21,11 @@ def test_data_load():
 
 
 def test_focus_data():
-    focus_row, focus_col = test_data.focus_content.shape
+    focus_row, focus_col = test_data.harness_focus_content.shape
     assert focus_row == test_data_length
     assert focus_col == len(HARNESS_FIELDS)
     assert (
-        test_data.focus_content["EffectiveCost"].sum()
+        test_data.harness_focus_content["EffectiveCost"].sum()
         == test_data.billing_content["EffectiveCost"].sum()
     )
 
@@ -70,7 +71,7 @@ def test_data_load_multiply():
     test_data_skip.render()
 
     assert (
-        test_data_skip.focus_content["EffectiveCost"].sum()
+        test_data_skip.harness_focus_content["EffectiveCost"].sum()
         == baseline_sum * to_multiply
     )
 
@@ -89,4 +90,27 @@ def test_data_convert():
     assert (
         test_data_convert.billing_content.iloc[test_data_length - 1]["BillingAccountId"]
         == "FakeAccountID"
+    )
+
+
+# custom converters
+def test_data_null_provider(tmpdir):
+    filename = tmpdir.join("output.csv")
+
+    test_data_setup = Focus(
+        "MyTestPlatform",
+        SAMPLE_DATA,
+        converters={"ProviderName": lambda _: ""},
+    )
+
+    test_data_setup.render_file(filename)
+
+    test_data_provider = Focus(
+        "MyTestPlatformTest",
+        filename,
+    )
+
+    assert (
+        test_data_provider.billing_content.iloc[0]["ProviderName"]
+        == "MyTestPlatformTest"
     )
