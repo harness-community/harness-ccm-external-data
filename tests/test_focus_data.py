@@ -1,4 +1,4 @@
-from focus import Focus, HARNESS_FIELDS
+from src.harness_ccm_external_data import Focus, HARNESS_FIELDS
 
 import pandas as pd
 import numpy as np

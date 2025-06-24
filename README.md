@@ -1,4 +1,4 @@
-# harness-ccm-focus-tools
+# harness-ccm-external-data
 
 tools to help manage ingesting external data in harness ccm
 
@@ -23,6 +23,8 @@ mapping = {
 next we create a `Focus` object, specifying the platform, local billing export file, field mappings (if needed) and any data modifications needed:
 
 ```python
+from harness_ccm_external_data import Focus
+
 my_data = Focus(
     "MyTestPlatform",
     "my_billing_export.csv",
@@ -51,3 +53,11 @@ now we can render the data to the harness platform format:
 ```
 my_data.render_file("harness_focus_my_billing_export.csv")
 ```
+
+## development
+
+pull the example focus csv: `curl -LO https://raw.githubusercontent.com/FinOps-Open-Cost-and-Usage-Spec/FOCUS-Sample-Data/refs/heads/main/FOCUS-1.0/focus_sample.csv`
+
+install [poetry](https://python-poetry.org/docs/#installation)
+
+testing: `make test`
