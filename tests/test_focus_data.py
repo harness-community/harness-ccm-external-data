@@ -1,7 +1,6 @@
 from src.harness_ccm_external_data import Focus, HARNESS_FIELDS
 
 import pandas as pd
-import numpy as np
 
 SAMPLE_DATA = "focus_sample.csv"
 
