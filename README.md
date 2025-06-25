@@ -20,6 +20,8 @@ mapping = {
 }
 ```
 
+if only a subset of fields need remapping you can specify only those which need changed.
+
 next we create a `Focus` object, specifying the platform, local billing export file, field mappings (if needed) and any data modifications needed:
 
 ```python
