@@ -2,7 +2,7 @@
 
 terraform to create a bucket, trigger, and function to load, transform, and upload external billing data to harness
 
-![image](https://github.com/user-attachments/assets/5508bd8b-e909-42a5-b217-cd492c22f0c2)
+![image](https://github.com/user-attachments/assets/9d59b711-eef4-488f-86ba-f742947e06b9)
 
 ## Requirements
 
