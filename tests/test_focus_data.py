@@ -114,3 +114,34 @@ def test_data_null_provider(tmpdir):
         test_data_provider.billing_content.iloc[0]["ProviderName"]
         == "MyTestPlatformTest"
     )
+
+
+def test_data_mapping(tmpdir):
+    filename = tmpdir.join("output.csv")
+    mapped_col = {"SkuId": "SKU"}
+    one_off = pd.read_csv(SAMPLE_DATA, dtype=str)
+    one_off.rename(columns=mapped_col).to_csv(filename, index=False)
+
+    test_data_remap = Focus("MyTestPlatform", filename, mapping=mapped_col)
+
+    test_data_remap.render()
+
+    assert len(test_data_remap.harness_focus_content["SkuId"]) == test_data_length
+
+
+def test_data_mapping_empty(tmpdir):
+    test_data_empty = Focus(
+        "MyTestPlatform",
+        SAMPLE_DATA,
+        mapping={},
+    )
+
+    assert test_data_empty.render() is not None
+
+    test_data_none = Focus(
+        "MyTestPlatform",
+        SAMPLE_DATA,
+        mapping=None,
+    )
+
+    assert test_data_none.render() is not None
