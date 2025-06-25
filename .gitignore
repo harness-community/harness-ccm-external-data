@@ -195,3 +195,7 @@ cython_debug/
 
 # test data
 *.csv
+
+# terraform modules
+*terraform*
+builds
