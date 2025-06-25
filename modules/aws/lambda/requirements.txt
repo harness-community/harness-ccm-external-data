@@ -1,2 +1,1 @@
-boto3
-harness-ccm-external-data
+harness-ccm-external-data==0.1.1
