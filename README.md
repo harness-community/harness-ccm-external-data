@@ -70,6 +70,12 @@ docker run --rm -it \
   harnesscommunity/harness-ccm-external-data
 ```
 
+## modules
+
+there are patterns provided for extracting, transforming, and loading external data into harness under the `modules` folder:
+
+- aws: s3+lambda function
+
 ### data loading settings
 
 - `RENDER_FILE`: file path to render harness-focus data to
