@@ -36,7 +36,7 @@ class Focus:
         self,
         provider: str,
         filename: str,
-        mapping: Dict[str, str] = {x: x for x in HARNESS_FIELDS},
+        mapping: Dict[str, str] = {},
         separator: str = ",",
         skip_rows: int | Sequence[int] = None,
         cost_multiplier: float = 1.0,
@@ -44,27 +44,35 @@ class Focus:
         validate: bool = True,
     ):
         self.provider = provider
-        self.mapping = mapping
         self.cost_multiplier = cost_multiplier
         self.converters = converters
         self.harness_focus_content: pd.DataFrame = None
 
+        # sanitize mappings
+        mapping = mapping if mapping else {}
+        self.mapping = {**{x: x for x in HARNESS_FIELDS}, **mapping}
+
         # restrict fields to ones supported by ccm
         # allow disabling verification for instances when ccm moves faster than the code
         if validate:
-            for field in mapping.copy():
+            for field in mapping:
                 if field not in HARNESS_FIELDS:
                     print(
                         f"WARNING: Field {field} is not a recognized harness focus field. Will be ignored"
                     )
-                    del mapping[field]
+                    del self.mapping[field]
 
         baseline_converters = {
-            # apply given cost multiplier
-            mapping["EffectiveCost"]: lambda x: pd.to_numeric(x) * cost_multiplier,
             # make sure provider is set
-            mapping["ProviderName"]: lambda x: self.provider if not x else x,
+            self.mapping["ProviderName"]: lambda x: self.provider
+            if not x
+            else x,
         }
+        if cost_multiplier:
+            # apply given cost multiplier
+            baseline_converters[self.mapping["EffectiveCost"]] = (
+                lambda x: pd.to_numeric(x) * cost_multiplier
+            )
 
         self.billing_content = pd.read_csv(
             filename,
@@ -101,3 +109,9 @@ class Focus:
             self.render().to_csv(filename, index=False)
         else:
             self.harness_focus_content.to_csv(filename, index=False)
+
+    def __repr__(self):
+        if self.harness_focus_content is None:
+            return self.billing_content.__repr__()
+        else:
+            return self.harness_focus_content.__repr__()

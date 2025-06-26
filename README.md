@@ -20,6 +20,8 @@ mapping = {
 }
 ```
 
+if only a subset of fields need remapping you can specify only those which need changed.
+
 next we create a `Focus` object, specifying the platform, local billing export file, field mappings (if needed) and any data modifications needed:
 
 ```python
@@ -53,6 +55,30 @@ now we can render the data to the harness platform format:
 ```
 my_data.render_file("harness_focus_my_billing_export.csv")
 ```
+
+## docker
+
+there is a docker image available to enable running the automation via docker or a plugin in a harness pipeline:
+
+```
+docker run --rm -it \
+  -v ${PWD}/focus_sample.csv:/focus_sample.csv \
+  -v ${PWD}:/output \
+  -e CSV_FILE=/focus_sample.csv \
+  -e PROVIDER=MyTestProvider \
+  -e RENDER_FILE=/output/docker_focus.csv \
+  harnesscommunity/harness-ccm-external-data
+```
+
+### data loading settings
+
+- `RENDER_FILE`: file path to render harness-focus data to
+- `PROVIDER`: 
+- `CSV_FILE`: 
+- `MAPPING`: 
+- `SKIP_ROWS`: 
+- `COST_MULTIPLIER`: 
+- `VALIDATE`: 
 
 ## development
 
