@@ -64,11 +64,15 @@ class Focus:
 
         baseline_converters = {
             # make sure provider is set
-            self.mapping["ProviderName"]: lambda x: self.provider if not x else x,
+            self.mapping["ProviderName"]: lambda x: self.provider
+            if not x
+            else x,
         }
         if cost_multiplier:
             # apply given cost multiplier
-            baseline_converters[self.mapping["EffectiveCost"]] = lambda x: pd.to_numeric(x) * cost_multiplier
+            baseline_converters[self.mapping["EffectiveCost"]] = (
+                lambda x: pd.to_numeric(x) * cost_multiplier
+            )
 
         self.billing_content = pd.read_csv(
             filename,
@@ -105,7 +109,7 @@ class Focus:
             self.render().to_csv(filename, index=False)
         else:
             self.harness_focus_content.to_csv(filename, index=False)
-    
+
     def __repr__(self):
         if self.harness_focus_content is None:
             return self.billing_content.__repr__()
