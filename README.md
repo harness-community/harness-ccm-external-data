@@ -58,7 +58,7 @@ my_data.render_file("harness_focus_my_billing_export.csv")
 
 ## docker
 
-there is a docker image available to enable running the automation:
+there is a docker image available to enable running the automation via docker or a plugin in a harness pipeline:
 
 ```
 docker run --rm -it \
