@@ -28,7 +28,7 @@ def test_data_upload():
     may_data = Focus(
         "Testing Upload",
         timestamp,
-        "focus_sample_2025_05.csv",
+        SAMPLE_DATA,
         converters={
             "BillingPeriodStart": lambda _: "2025-5-01 00:00:00",
             "BillingPeriodEnd": lambda _: "2025-6-01 00:00:00",
@@ -42,7 +42,7 @@ def test_data_upload():
     june_data = Focus(
         "Testing Upload",
         timestamp,
-        "focus_sample_2025_06.csv",
+        SAMPLE_DATA,
         converters={
             "BillingPeriodStart": lambda _: "2025-6-01 00:00:00",
             "BillingPeriodEnd": lambda _: "2025-7-01 00:00:00",
