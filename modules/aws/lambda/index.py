@@ -21,6 +21,7 @@ def lambda_handler(event, context):
         logging.info(json.dumps(record, indent=2))
 
         provider = getenv("PROVIDER")
+        data_source = getenv("DATA_SOURCE")
         filename = record["s3"]["object"]["key"].split("/")[-1]
         mapping = json.loads(getenv("MAPPING", "{}"))
 
@@ -28,21 +29,15 @@ def lambda_handler(event, context):
 
         focus_data = Focus(
             provider,
+            data_source,
             f"/tmp/{filename}",
-            mapping=mapping
+            mapping=mapping,
+            harness_account_id=getenv("HARNESS_ACCOUNT_ID"),
+            harness_platform_api_key=getenv("HARNESS_PLATFORM_API_KEY")
         )
 
-        destination_filename = f"/tmp/processed_{filename}"
-
         try:
-            focus_data.render_file(destination_filename)
-        except Exception as e:
-            logging.error(record["s3"]["object"]["key"] + ": " + e)
-            failed_files.append(record["s3"]["object"]["key"])
-            continue
-            
-        try:
-            # upload file
+            focus_data.upload()
             pass
         except Exception as e:
             logging.error(record["s3"]["object"]["key"] + ": " + e)

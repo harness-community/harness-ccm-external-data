@@ -62,4 +62,7 @@ if __name__ == "__main__":
         if prefix:
             write_outputs({"output_file": destination_file})
 
+    if getenv(f"{prefix}UPLOAD"):
+        focus.upload()
+
     print(focus)
