@@ -1,12 +1,11 @@
 from src.harness_ccm_external_data import Focus, HARNESS_FIELDS
 
 import pandas as pd
-import numpy as np
 
 SAMPLE_DATA = "focus_sample.csv"
 
 # baseline
-test_data = Focus("MyTestPlatform", SAMPLE_DATA)
+test_data = Focus("MyTestPlatform", "Test", SAMPLE_DATA)
 test_data_length = 1000
 test_data_col = 44
 
@@ -44,7 +43,9 @@ def test_render_data(tmpdir):
 # skipping rows
 def test_data_load_skip_lines():
     to_skip_lines = 100
-    test_data_skip_lines = Focus("MyTestPlatform", SAMPLE_DATA, skip_rows=to_skip_lines)
+    test_data_skip_lines = Focus(
+        "MyTestPlatform", "Test", SAMPLE_DATA, skip_rows=to_skip_lines
+    )
 
     raw_row, raw_col = test_data_skip_lines.billing_content.shape
     assert raw_row == test_data_length - to_skip_lines
@@ -54,7 +55,7 @@ def test_data_load_skip_lines():
 def test_data_load_skip_specific_lines():
     to_skip_specific = [1, 3, 5, 7, 9]
     test_data_skip_specific = Focus(
-        "MyTestPlatform", SAMPLE_DATA, skip_rows=to_skip_specific
+        "MyTestPlatform", "Test", SAMPLE_DATA, skip_rows=to_skip_specific
     )
 
     raw_row, raw_col = test_data_skip_specific.billing_content.shape
@@ -65,7 +66,9 @@ def test_data_load_skip_specific_lines():
 # cost multiplier
 def test_data_load_multiply():
     to_multiply = 2
-    test_data_skip = Focus("MyTestPlatform", SAMPLE_DATA, cost_multiplier=to_multiply)
+    test_data_skip = Focus(
+        "MyTestPlatform", "Test", SAMPLE_DATA, cost_multiplier=to_multiply
+    )
 
     baseline_sum = pd.read_csv(SAMPLE_DATA)["EffectiveCost"].sum()
     test_data_skip.render()
@@ -80,6 +83,7 @@ def test_data_load_multiply():
 def test_data_convert():
     test_data_convert = Focus(
         "MyTestPlatform",
+        "Test",
         SAMPLE_DATA,
         converters={"BillingAccountId": lambda x: "FakeAccountID"},
     )
@@ -99,6 +103,7 @@ def test_data_null_provider(tmpdir):
 
     test_data_setup = Focus(
         "MyTestPlatform",
+        "Test",
         SAMPLE_DATA,
         converters={"ProviderName": lambda _: ""},
     )
@@ -107,6 +112,7 @@ def test_data_null_provider(tmpdir):
 
     test_data_provider = Focus(
         "MyTestPlatformTest",
+        "Test",
         filename,
     )
 
@@ -122,7 +128,7 @@ def test_data_mapping(tmpdir):
     one_off = pd.read_csv(SAMPLE_DATA, dtype=str)
     one_off.rename(columns=mapped_col).to_csv(filename, index=False)
 
-    test_data_remap = Focus("MyTestPlatform", filename, mapping=mapped_col)
+    test_data_remap = Focus("MyTestPlatform", "Test", filename, mapping=mapped_col)
 
     test_data_remap.render()
 
@@ -132,6 +138,7 @@ def test_data_mapping(tmpdir):
 def test_data_mapping_empty(tmpdir):
     test_data_empty = Focus(
         "MyTestPlatform",
+        "Test",
         SAMPLE_DATA,
         mapping={},
     )
@@ -140,6 +147,7 @@ def test_data_mapping_empty(tmpdir):
 
     test_data_none = Focus(
         "MyTestPlatform",
+        "Test",
         SAMPLE_DATA,
         mapping=None,
     )
