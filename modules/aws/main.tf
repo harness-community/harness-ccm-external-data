@@ -49,10 +49,11 @@ module "lambda_function" {
     ]
   })
 
-  environment_variables = {
-    MAPPING  = jsonencode(var.mapping),
-    PROVIDER = var.data_provider
-  }
+  environment_variables = merge({
+    MAPPING     = jsonencode(var.mapping)
+    PROVIDER    = var.provider_name
+    DATA_SOURCE = var.data_source
+  }, var.environment_variables)
 }
 
 module "s3_notification" {

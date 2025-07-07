@@ -68,8 +68,8 @@ class Focus:
         harness_platform_api_key: str = None,
         harness_account_id: str = None,
     ):
-        self.provider = provider
-        self.data_source = data_source
+        self.provider = provider  # cloud platform
+        self.data_source = data_source  # instance of this cloud platform
         self.provider_type = provider_type
         self.invoice_period = invoice_period
         self.provider_uuid = provider_uuid
@@ -87,7 +87,11 @@ class Focus:
         self.mapping = {**{x: x for x in HARNESS_FIELDS}, **mapping}
 
         # if provider dosnt exist, create it
-        if self.provider_uuid is None:
+        if (
+            (self.provider_uuid is None)
+            and (self.harness_platform_api_key is not None)
+            and (self.harness_account_id is not None)
+        ):
             for provider in self._list_providers():
                 if (
                     provider["name"] == self.data_source
@@ -402,16 +406,25 @@ class Focus:
             print(f"Failed to trigger ingestion: {resp.status_code} - {resp.text}")
             return False
 
-    def upload(self, force: bool = False):
+    def upload(
+        self, harness_platform_api_key: str = None, harness_account_id: str = None
+    ):
         """
         Upload the Harness-CSV data to Harness
 
         Args:
-            force (bool): Whether to force upload even if data already exists
+            harness_platform_api_key (str): API key for Harness platform
+            harness_account_id (str): Account ID for Harness
 
         Returns:
             bool: True if all steps completed successfully, False otherwise
         """
+
+        if harness_platform_api_key:
+            self.harness_platform_api_key = harness_platform_api_key
+
+        if harness_account_id:
+            self.harness_account_id = harness_account_id
 
         # Ensure we have the rendered content
         if self.harness_focus_content is None:

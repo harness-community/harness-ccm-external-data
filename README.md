@@ -84,7 +84,8 @@ docker run --rm -it \
   -v ${PWD}:/output \
   -e CSV_FILE=/focus_sample.csv \
   -e PROVIDER=MyTestProvider \
-  -e RENDER_FILE=/output/docker_focus.csv \
+  -e RENDER_FILE=/output/docker_focus.csv # optional \
+  -e UPLOAD=true # optional \
   harnesscommunity/harness-ccm-external-data
 ```
 
