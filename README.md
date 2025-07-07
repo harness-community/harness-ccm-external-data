@@ -28,8 +28,13 @@ next we create a `Focus` object, specifying the platform, local billing export f
 from harness_ccm_external_data import Focus
 
 my_data = Focus(
-    "MyTestPlatform",
-    "my_billing_export.csv",
+    # name of the provider where the billing data came from
+    provider="CloudABC",
+    # name of this particular data source from the above provider
+    datasource="ABC Payer Account 1",
+    # csv with focus data
+    filename="abc_billing_export.csv",
+    # focus to non focus mappings (if they exist)
     mappings={
         "BillingAccountId": "Organization ID",
         "BillingAccountName": "Organization Name",
@@ -46,15 +51,28 @@ my_data = Focus(
     # apply a function to any column value
     converters={
         "ChargeCategory": lambda x: lower(x)
-    }
+    },
+    # for data upload to harness
+    harness_account_id=getenv("HARNESS_ACCOUNT_ID"),
+    harness_platform_api_key=getenv("HARNESS_PLATFORM_API_KEY"),
 )
 ```
 
-now we can render the data to the harness platform format:
+now we can render the data to the harness platform format to be uploaded by hand in the UI:
 
 ```
 my_data.render_file("harness_focus_my_billing_export.csv")
 ```
+
+## uploading data
+
+uploading the data to harness is as simple as executing the upload function, there is no need to render the data to a file before doing so:
+
+```python
+my_data.upload()
+```
+
+this will auto-detect the invoice period from the data, upload it, and trigger ingestion
 
 ## docker
 
