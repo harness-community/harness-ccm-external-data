@@ -83,10 +83,33 @@ docker run --rm -it \
   -v ${PWD}/focus_sample.csv:/focus_sample.csv \
   -v ${PWD}:/output \
   -e CSV_FILE=/focus_sample.csv \
-  -e PROVIDER=MyTestProvider \
+  -e PROVIDER=CloudABC \
+  -e DATA_SOURCE="ABC Payer Account 1" \
   -e RENDER_FILE=/output/docker_focus.csv # optional \
   -e UPLOAD=true # optional \
   harnesscommunity/harness-ccm-external-data
+```
+
+### drone plugin
+
+the container can also be used as a drone/harness plugin:
+
+```yaml
+- step:
+    type: Plugin
+    name: upload
+    identifier: upload
+    spec:
+        connectorRef: account.buildfarm_container_registry_cloud
+        image: harnesscommunity/harness-ccm-external-data
+        settings:
+            PROVIDER: CloudABC
+            DATA_SOURCE: ABC Payer Account 1
+            CSV_FILE: /harness/focus_sample.csv
+            HARNESS_ACCOUNT_ID: <+account.identifier>
+            HARNESS_PLATFORM_API_KEY: <+secrets.getValue("account.account_admin")>
+            UPLOAD: "true" # optional
+            RENDER_FILE: /harness/harness_focus_sample.csv # optional
 ```
 
 ## modules
