@@ -9,4 +9,4 @@ RUN poetry install --no-root
 
 COPY src .
 
-ENTRYPOINT [ "poetry", "run", "python", "/app/exec.py" ]
+ENTRYPOINT [ "poetry", "--directory", "/app", "run", "python", "/app/exec.py" ]
