@@ -29,34 +29,36 @@ if __name__ == "__main__":
     else:
         prefix = ""
 
-    provider = getenv(f"{prefix}PROVIDER")
-    if not provider:
+    if not (provider := getenv(f"{prefix}PROVIDER")):
         print("Must pass provider name via PROVIDER")
         exit(1)
 
-    data_source = getenv(f"{prefix}DATA_SOURCE")
-    if not data_source:
+    if not (data_source := getenv(f"{prefix}DATA_SOURCE")):
         print("Must pass data source via DATA_SOURCE")
         exit(1)
 
-    provider_type = getenv(f"{prefix}PROVIDER_TYPE")
+    if not (provider_type := getenv(f"{prefix}PROVIDER_TYPE")):
+        print("Must pass provider type via PROVIDER_TYPE")
+        exit(1)
 
-    invoice_period = getenv(f"{prefix}INVOICE_PERIOD")
+    if not (invoice_period := getenv(f"{prefix}INVOICE_PERIOD")):
+        print("Must pass invoice period via INVOICE_PERIOD")
+        exit(1)
 
-    filename = getenv(f"{prefix}CSV_FILE")
-    if not filename:
+    if not (filename := getenv(f"{prefix}CSV_FILE")):
         print("Must pass csv name via CSV_FILE")
         exit(1)
 
     mapping = loads(getenv(f"{prefix}MAPPING", "{}"))
 
-    skip_rows = getenv(f"{prefix}SKIP_ROWS")
+    if not (skip_rows := getenv(f"{prefix}SKIP_ROWS")):
+        skip_rows = None
 
-    cost_multiplier = getenv(f"{prefix}COST_MULTIPLIER")
-    if cost_multiplier:
-        cost_multiplier = int(cost_multiplier)
+    if not (cost_multiplier := getenv(f"{prefix}COST_MULTIPLIER")):
+        cost_multiplier = None
 
-    validate = bool(getenv(f"{prefix}VALIDATE"))
+    if not (validate := bool(getenv(f"{prefix}VALIDATE"))):
+        validate = True
 
     focus = Focus(
         provider=provider,
@@ -77,9 +79,9 @@ if __name__ == "__main__":
         if prefix:
             write_outputs({"output_file": destination_file})
 
-    if getenv(f"{prefix}UPLOAD"):
+    if upload := getenv(f"{prefix}UPLOAD"):
         result = focus.upload()
         if prefix:
-            write_outputs({"uploaded": str(result)})
+            write_outputs({"uploaded": str(result).lower()})
 
     print(focus)
