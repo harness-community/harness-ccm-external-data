@@ -22,10 +22,10 @@ def write_outputs(outputs: dict[str, str]):
 
 
 if __name__ == "__main__":
-    # if we are being used as a drone plugin, prefix env with SETTING_
+    # if we are being used as a drone plugin, prefix env with   PLUGIN_
     if getenv("DRONE_OUTPUT"):
-        print("Running in drone/harness, using SETTING_")
-        prefix = "SETTING_"
+        print("Running in drone/harness, using PLUGIN_")
+        prefix = "PLUGIN_"
     else:
         prefix = ""
 
