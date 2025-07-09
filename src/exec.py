@@ -1,4 +1,4 @@
-from harness_ccm_external_data import Focus, HARNESS_FIELDS
+from harness_ccm_external_data import Focus
 
 from os import getenv
 from json import loads
@@ -24,6 +24,7 @@ def write_outputs(outputs: dict[str, str]):
 if __name__ == "__main__":
     # if we are being used as a drone plugin, prefix env with SETTING_
     if getenv("DRONE_OUTPUT"):
+        print("Running in drone/harness, using SETTING_")
         prefix = "SETTING_"
     else:
         prefix = ""
