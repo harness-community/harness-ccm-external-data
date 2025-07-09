@@ -33,6 +33,15 @@ if __name__ == "__main__":
         print("Must pass provider name via PROVIDER")
         exit(1)
 
+    data_source = getenv(f"{prefix}DATA_SOURCE")
+    if not data_source:
+        print("Must pass data source via DATA_SOURCE")
+        exit(1)
+
+    provider_type = getenv(f"{prefix}PROVIDER_TYPE")
+
+    invoice_period = getenv(f"{prefix}INVOICE_PERIOD")
+
     filename = getenv(f"{prefix}CSV_FILE")
     if not filename:
         print("Must pass csv name via CSV_FILE")
@@ -50,11 +59,16 @@ if __name__ == "__main__":
 
     focus = Focus(
         provider=provider,
+        data_source=data_source,
+        provider_type=provider_type,
+        invoice_period=invoice_period,
         filename=filename,
         mapping=mapping,
         skip_rows=skip_rows,
         cost_multiplier=cost_multiplier,
         validate=validate,
+        harness_platform_api_key=getenv(f"{prefix}HARNESS_PLATFORM_API_KEY"),
+        harness_account_id=getenv(f"{prefix}HARNESS_ACCOUNT_ID"),
     )
 
     if destination_file := getenv(f"{prefix}RENDER_FILE"):
