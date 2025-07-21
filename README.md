@@ -3,6 +3,7 @@
 tools to help manage ingesting external data in harness ccm
 
 the project is split into several parts:
+- creating raw data
 - converting external data formats to a compatible format for harness (focus)
 - uploading the converted data to the harness platform
 
@@ -63,6 +64,62 @@ now we can render the data to the harness platform format to be uploaded by hand
 ```
 my_data.render_file("harness_focus_my_billing_export.csv")
 ```
+
+### building data
+
+you can also build cost data on the fly by building a dataframe and passing that to the constructor:
+
+```python
+from harness_ccm_external_data import Focus
+
+data = [
+    [
+        1234567890123,
+        "SunBird",
+        "2025-6-01 00:00:00",
+        "2025-5-01 00:00:00",
+        "Usage",
+        "2024-09-18 22:00:00",
+        "2024-09-18 23:00:00",
+        2.0,
+        0.0,
+        "AWS",
+        "arn:ats:sqs:us-test-2:347410479675:mibelllmel-i-032l64f2065481b12",
+        "US West (Oregon)",
+        "Amazon Simple Queue Service",
+        51738928782,
+        "G95FST5FTYV3JSRX",
+        "Atlas Nimbus",
+    ],
+    [
+        1234567890124,
+        "SunBird2",
+        "2025-6-01 00:00:00",
+        "2025-5-01 00:00:00",
+        "Usage",
+        "2024-09-30 22:00:00",
+        "2024-09-30 23:00:00",
+        0.00200749,
+        0.0,
+        "AWS",
+        "arn:ats:emastilmoalfamanling:us-test-2:586597448978:moalfamanler/app/tungsten-lonbmuenle-amf/l365455f461l4e4a",
+        "US West (Oregon)",
+        "Elastic Load Balancing",
+        43883916739,
+        "2ETY8Y426S4237JU",
+        "Zenith Eclipse",
+        '{"application": "BrightLensMatrix", "environment": "dev", "business_unit": "ViennaAI"}',
+    ],
+]
+
+my_data = Focus(
+    provider="CloudABC",
+    data_source="ABC Payer Account 1",
+    source=Focus.create_dataset(data),
+)
+```
+
+the data defined should have the harness focus feilds as defined in [HARNESS_FIELDS](https://github.com/harness-community/harness-ccm-external-data/blob/main/src/harness_ccm_external_data/focus_data.py#L9-L27)
 
 ## uploading data
 

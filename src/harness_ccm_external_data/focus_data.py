@@ -38,7 +38,7 @@ class Focus:
     Attributes:
         provider (str): Name of the provider name (eg AWS, GCP, etc)
         data_source (str): Name of the data source (eg AWS Master Payer)
-        filename (str): Path to the focus billing export
+        source (str | pd.DataFrame): Path to the focus billing export or DataFrame with content
         provider_type (str): Type of provider (default CUSTOM)
         invoice_period (str): Invoice period (default MONTHLY)
         mapping (Dict[str, str]): Mapping of focus fields to harness fields
@@ -55,7 +55,7 @@ class Focus:
         self,
         provider: str,
         data_source: str,
-        filename: str,
+        source: str | pd.DataFrame,
         provider_type: str = "CUSTOM",
         invoice_period: str = "MONTHLY",
         provider_uuid: str = None,
@@ -73,7 +73,7 @@ class Focus:
         self.provider_type = provider_type
         self.invoice_period = invoice_period
         self.provider_uuid = provider_uuid
-        self.filename = filename
+        self.source = source
         self.cost_multiplier = cost_multiplier
         self.converters = converters
         self.harness_platform_api_key = harness_platform_api_key
@@ -124,13 +124,17 @@ class Focus:
                 lambda x: pd.to_numeric(x) * cost_multiplier
             )
 
-        self.billing_content = pd.read_csv(
-            filename,
-            sep=separator,
-            engine="python",
-            skiprows=skip_rows,
-            # any converters specified by the user will override built-in ones
-            converters={**baseline_converters, **converters},
+        self.billing_content = (
+            self.source
+            if isinstance(self.source, pd.DataFrame)
+            else pd.read_csv(
+                self.source,
+                sep=separator,
+                engine="python",
+                skiprows=skip_rows,
+                # any converters specified by the user will override built-in ones
+                converters={**baseline_converters, **converters},
+            )
         )
 
     def render(self) -> pd.DataFrame:
@@ -490,3 +494,12 @@ class Focus:
             return False
 
         return True
+
+    def create_dataset(data: list(list()) = None) -> pd.DataFrame:
+        """
+        Create an empty DataFrame with the standard Harness FOCUS data columns.
+
+        Returns:
+            pd.DataFrame: An empty DataFrame with the standard Harness FOCUS data columns.
+        """
+        return pd.DataFrame(data, columns=HARNESS_FIELDS)

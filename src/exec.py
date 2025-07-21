@@ -61,7 +61,7 @@ if __name__ == "__main__":
         data_source=data_source,
         provider_type=provider_type,
         invoice_period=invoice_period,
-        filename=filename,
+        source=filename,
         mapping=mapping,
         skip_rows=skip_rows,
         cost_multiplier=cost_multiplier,
