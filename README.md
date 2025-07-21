@@ -3,6 +3,7 @@
 tools to help manage ingesting external data in harness ccm
 
 the project is split into several parts:
+- creating raw data
 - converting external data formats to a compatible format for harness (focus)
 - uploading the converted data to the harness platform
 
