@@ -37,13 +37,9 @@ if __name__ == "__main__":
         print("Must pass data source via DATA_SOURCE")
         exit(1)
 
-    if not (provider_type := getenv(f"{prefix}PROVIDER_TYPE")):
-        print("Must pass provider type via PROVIDER_TYPE")
-        exit(1)
+    provider_type = getenv(f"{prefix}PROVIDER_TYPE")
 
-    if not (invoice_period := getenv(f"{prefix}INVOICE_PERIOD")):
-        print("Must pass invoice period via INVOICE_PERIOD")
-        exit(1)
+    invoice_period = getenv(f"{prefix}INVOICE_PERIOD")
 
     if not (filename := getenv(f"{prefix}CSV_FILE")):
         print("Must pass csv name via CSV_FILE")
