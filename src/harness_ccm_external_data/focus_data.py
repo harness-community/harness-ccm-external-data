@@ -184,6 +184,17 @@ class Focus:
         else:
             print(f"Failed to list providers: {resp.status_code} - {resp.text}")
             return []
+    
+    def _get_provider(self):
+        """
+        Get a provider by name
+        """
+
+        for provider in self._list_providers():
+            if self.provider_uuid == provider["uuid"]:
+                return provider
+
+        return None
 
     def _create_provider(self):
         """
@@ -270,12 +281,39 @@ class Focus:
             print(f"Failed to list files: {resp.status_code} - {resp.text}")
             return []
 
+    def delete_file(self, md5_hash: str = None):
+        """
+        Delete a file from the provider
+        """
+
+        if not md5_hash:
+            md5_hash = self.md5_hash
+
+        resp = delete(
+            f"https://app.harness.io/gateway/ccm/api/externaldata/filesinfo/{md5_hash}",
+            params={
+                "accountIdentifier": self.harness_account_id,
+            },
+            headers={
+                "x-api-key": self.harness_platform_api_key,
+                "content-type": "application/json",
+            },
+            data=md5_hash
+        )
+
+        if resp.status_code != 200:
+            print(f"Failed to delete file: {resp.status_code} - {resp.text}")
+            return False
+        else:
+            return True
+
     def _get_md5_hash(self, csv_content: str) -> str:
         """
         Generate MD5 hash of the CSV content.
         """
 
-        return hashlib.md5(csv_content.encode("utf-8")).hexdigest()
+        self.md5_hash = hashlib.md5(csv_content.encode("utf-8")).hexdigest()
+        return self.md5_hash
 
     def _get_signed_url(
         self, provider_id: str, invoice_period: str, object_name: str
@@ -379,7 +417,8 @@ class Focus:
             period_end = (period_start + relativedelta(months=1)).replace(day=1)
 
             # Format as YYYYMMDD-YYYYMMDD
-            return f"{period_start.strftime('%Y%m%d')}-{period_end.strftime('%Y%m%d')}"
+            self.uploaded_invoice_period = f"{period_start.strftime('%Y%m%d')}-{period_end.strftime('%Y%m%d')}"
+            return self.uploaded_invoice_period
 
         except Exception as e:
             print(f"Error calculating invoice period: {str(e)}")

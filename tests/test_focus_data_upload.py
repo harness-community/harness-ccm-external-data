@@ -1,3 +1,4 @@
+from time import sleep
 from src.harness_ccm_external_data import Focus
 
 from os import getenv
@@ -65,3 +66,13 @@ def test_data_upload():
     )
 
     assert june_data.upload() is True
+
+    # while may_data._get_provider()["status"][may_data.uploaded_invoice_period]["status"] != "Success":
+    #     sleep(5)
+
+    # while june_data._get_provider()["status"][june_data.uploaded_invoice_period]["status"] != "Success":
+    #     sleep(5)
+
+    # may_data.delete_file()
+    # june_data.delete_file()
+    # may_data._delete_provider()
