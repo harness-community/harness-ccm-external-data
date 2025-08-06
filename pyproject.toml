@@ -1,6 +1,6 @@
 [project]
 name = "harness-ccm-external-data"
-version = "0.1.4"
+version = "0.1.5"
 description = "Tools to help manage external data for Harness CCM"
 authors = [
     {name = "Riley Snyder",email = "riley.snyder@harness.io"}
