@@ -46,6 +46,7 @@ class Focus:
         skip_rows (int | Sequence[int]): Rows to skip in the CSV
         cost_multiplier (float): Multiplier for cost
         converters (Dict[str, callable]): Custom converters for columns
+        additional_columns (Dict[str, str]): Additional columns to add to the source data with a static value
         validate (bool): Validate columns
         harness_platform_api_key (str): API key for Harness platform
         harness_account_id (str): Account ID for Harness
@@ -64,6 +65,7 @@ class Focus:
         skip_rows: int | Sequence[int] = None,
         cost_multiplier: float = 1.0,
         converters: Dict[str, callable] = {},
+        additional_columns: Dict[str, str] = {},
         validate: bool = True,
         harness_platform_api_key: str = None,
         harness_account_id: str = None,
@@ -76,6 +78,13 @@ class Focus:
         self.source = source
         self.cost_multiplier = cost_multiplier
         self.converters = converters
+        self.additional_columns = additional_columns
+        for field in additional_columns:
+            if field not in HARNESS_FIELDS:
+                print(
+                    f"WARNING: Field {field} is not a recognized harness focus field. Will be ignored"
+                )
+                del self.additional_columns[field]
         self.harness_platform_api_key = harness_platform_api_key
         self.harness_account_id = harness_account_id
 
@@ -136,6 +145,9 @@ class Focus:
                 converters={**baseline_converters, **converters},
             )
         )
+
+        for field, value in self.additional_columns.items():
+            self.billing_content[field] = value
 
     def render(self) -> pd.DataFrame:
         """

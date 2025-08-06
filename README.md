@@ -32,15 +32,15 @@ my_data = Focus(
     # name of the provider where the billing data came from
     provider="CloudABC",
     # name of this particular data source from the above provider
-    datasource="ABC Payer Account 1",
+    data_source="ABC Payer Account 1",
     # csv with focus data
     filename="abc_billing_export.csv",
     # focus to non focus mappings (if they exist)
-    mappings={
+    mapping={
         "BillingAccountId": "Organization ID",
         "BillingAccountName": "Organization Name",
         ...
-    }
+    },
     # skip the first n rows of the billing data
     skip_rows=100,
     # you can also specify specific rows to skip
@@ -52,6 +52,10 @@ my_data = Focus(
     # apply a function to any column value
     converters={
         "ChargeCategory": lambda x: lower(x)
+    },
+    # fill in missing required fields with static data if needed
+    additional_columns={
+        "ConsumedQuantity": 1,
     },
     # for data upload to harness
     harness_account_id=getenv("HARNESS_ACCOUNT_ID"),
