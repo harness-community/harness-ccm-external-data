@@ -160,7 +160,7 @@ def test_additional_columns(tmpdir):
         "MyTestPlatform",
         "Test",
         SAMPLE_DATA,
-        additional_columns={"ConsumedQuantity": 1},
+        additional_columns={"ConsumedQuantity": 1, "NonFocusField": "Value"},
     )
 
     assert test_data_add.render() is not None
