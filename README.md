@@ -1,5 +1,8 @@
 # harness-ccm-external-data
 
+![PyPI - Version](https://img.shields.io/pypi/v/harness_ccm_external_data)
+![Docker Image Version](https://img.shields.io/docker/v/harnesscommunity/harness-ccm-external-data)
+
 tools to help manage ingesting external data in harness ccm
 
 the project is split into several parts:
