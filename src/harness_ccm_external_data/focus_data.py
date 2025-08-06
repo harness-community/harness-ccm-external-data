@@ -78,13 +78,14 @@ class Focus:
         self.source = source
         self.cost_multiplier = cost_multiplier
         self.converters = converters
-        self.additional_columns = additional_columns
-        for field in additional_columns:
+        self.additional_columns = {}
+        for field, value in additional_columns.items():
             if field not in HARNESS_FIELDS:
                 print(
                     f"WARNING: Field {field} is not a recognized harness focus field. Will be ignored"
                 )
-                del self.additional_columns[field]
+            else:
+                self.additional_columns[field] = value
         self.harness_platform_api_key = harness_platform_api_key
         self.harness_account_id = harness_account_id
 
