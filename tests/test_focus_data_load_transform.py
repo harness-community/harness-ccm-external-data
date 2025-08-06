@@ -153,3 +153,21 @@ def test_data_mapping_empty(tmpdir):
     )
 
     assert test_data_none.render() is not None
+
+
+def test_additional_columns(tmpdir):
+    test_data_add = Focus(
+        "MyTestPlatform",
+        "Test",
+        SAMPLE_DATA,
+        additional_columns={"ConsumedQuantity": 1},
+    )
+
+    assert test_data_add.render() is not None
+    assert test_data_add.harness_focus_content.iloc[0]["ConsumedQuantity"] == 1
+    assert (
+        test_data_add.harness_focus_content.iloc[test_data_length - 1][
+            "ConsumedQuantity"
+        ]
+        == 1
+    )
