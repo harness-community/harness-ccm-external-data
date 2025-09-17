@@ -72,10 +72,12 @@ class Focus:
     ):
         self.provider = provider  # cloud platform
         self.data_source = data_source  # instance of this cloud platform
+        self.source = source
         self.provider_type = provider_type
         self.invoice_period = invoice_period
         self.provider_uuid = provider_uuid
-        self.source = source
+        self.separator = separator
+        self.skip_rows = skip_rows
         self.cost_multiplier = cost_multiplier
         self.converters = converters
         self.additional_columns = {}
@@ -90,6 +92,7 @@ class Focus:
         self.harness_account_id = harness_account_id
 
         # Stub for generated content
+        self.billing_content: pd.DataFrame = None
         self.harness_focus_content: pd.DataFrame = None
 
         # sanitize mappings
@@ -122,7 +125,7 @@ class Focus:
                     )
                     del self.mapping[field]
 
-        baseline_converters = {
+        self.baseline_converters = {
             # make sure provider is set
             self.mapping["ProviderName"]: lambda x: self.provider
             if not x
@@ -130,30 +133,34 @@ class Focus:
         }
         if cost_multiplier:
             # apply given cost multiplier
-            baseline_converters[self.mapping["EffectiveCost"]] = (
+            self.baseline_converters[self.mapping["EffectiveCost"]] = (
                 lambda x: pd.to_numeric(x) * cost_multiplier
             )
 
+    def load_and_convert_data(self):
+        """
+        Load in the billing data and apply any specified modifications
+        """
         self.billing_content = (
             self.source
             if isinstance(self.source, pd.DataFrame)
             else pd.read_csv(
                 self.source,
-                sep=separator,
+                sep=self.separator,
                 engine="python",
-                skiprows=skip_rows,
+                skiprows=self.skip_rows,
                 # any converters specified by the user will override built-in ones
-                converters={**baseline_converters, **converters},
+                converters={**self.baseline_converters, **self.converters},
             )
         )
 
-        for field, value in self.additional_columns.items():
-            self.billing_content[field] = value
+    def convert_fields(self) -> pd.DataFrame:
+        """
+        Convert the billing data to a format that is compatible with Harness
+        """
 
-    def render(self) -> pd.DataFrame:
-        """
-        Create the Harness-aligned FOCUS CSV
-        """
+        if self.billing_content is None:
+            self.load_and_convert_data()
 
         self.harness_focus_content = pd.DataFrame()
         for focus_field, source_field in self.mapping.items():
@@ -165,6 +172,9 @@ class Focus:
                 # Default value for missing columns
                 self.harness_focus_content[focus_field] = source_field
 
+        for field, value in self.additional_columns.items():
+            self.harness_focus_content[field] = value
+
         return self.harness_focus_content
 
     def render_file(self, filename: str):
@@ -172,10 +182,12 @@ class Focus:
         Save the Harness-CSV to a file
         """
 
+        if self.billing_content is None:
+            self.load_and_convert_data()
         if self.harness_focus_content is None:
-            self.render().to_csv(filename, index=False)
-        else:
-            self.harness_focus_content.to_csv(filename, index=False)
+            self.convert_fields()
+
+        self.harness_focus_content.to_csv(filename, index=False)
 
     def _list_providers(self):
         """
@@ -383,7 +395,7 @@ class Focus:
             start_date_str = self.harness_focus_content["BillingPeriodStart"].iloc[0]
 
             # Parse the dates
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S")
 
             # Calculate the first day of the month for the start date
             period_start = start_date.replace(day=1)
@@ -425,7 +437,7 @@ class Focus:
 
     def upload(
         self, harness_platform_api_key: str = None, harness_account_id: str = None
-    ):
+    ) -> str | None:
         """
         Upload the Harness-CSV data to Harness
 
@@ -434,7 +446,7 @@ class Focus:
             harness_account_id (str): Account ID for Harness
 
         Returns:
-            bool: True if all steps completed successfully, False otherwise
+            str | None: Object name if all steps completed successfully, None otherwise
         """
 
         if harness_platform_api_key:
@@ -445,7 +457,7 @@ class Focus:
 
         # Ensure we have the rendered content
         if self.harness_focus_content is None:
-            self.render()
+            self.convert_fields()
 
         csv_content = self.harness_focus_content.to_csv(index=False)
         md5_hash = self._get_md5_hash(csv_content)
@@ -453,19 +465,19 @@ class Focus:
         # Ensure we have a provider
         if self.provider_uuid is None:
             if not self._create_provider():
-                return False
+                return None
 
         # If no invoice_period is provided, calculate it from the data
         this_invoice_period = self._get_invoice_period()
         if not this_invoice_period:
             print("Failed to determine invoice period from data")
-            return False
+            return None
 
         # Check if file has already been uploaded
         for file in self.list_files():
             if file["md5"] == md5_hash:
                 print(f"File already uploaded: {md5_hash}")
-                return False
+                return None
 
         # Generate a unique object name
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -479,12 +491,12 @@ class Focus:
         )
         if not signed_url:
             print("Failed to get signed URL")
-            return False
+            return None
 
         # Step 2: Upload to GCS
         if not self._upload_to_gcs(signed_url, csv_content):
             print("Failed to upload to GCS")
-            return False
+            return None
 
         # Extract the GCS URL from the signed URL (remove query parameters)
         cloud_storage_path = signed_url.split("?")[0]
@@ -499,14 +511,14 @@ class Focus:
             cloud_storage_path,
         ):
             print("Failed to mark upload as complete")
-            return False
+            return None
 
         # Step 4: Trigger ingestion
         if not self._trigger_ingestion(self.provider_uuid, [this_invoice_period]):
             print("Failed to trigger ingestion")
-            return False
+            return None
 
-        return True
+        return object_name
 
     def create_dataset(data: list(list()) = None) -> pd.DataFrame:
         """

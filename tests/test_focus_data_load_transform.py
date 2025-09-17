@@ -9,7 +9,7 @@ test_data = Focus("MyTestPlatform", "Test", SAMPLE_DATA)
 test_data_length = 1000
 test_data_col = 44
 
-test_data.render()
+test_data.convert_fields()
 test_data.render_file(f"harness_{SAMPLE_DATA}")
 
 
@@ -47,6 +47,7 @@ def test_data_load_skip_lines():
         "MyTestPlatform", "Test", SAMPLE_DATA, skip_rows=to_skip_lines
     )
 
+    test_data_skip_lines.convert_fields()
     raw_row, raw_col = test_data_skip_lines.billing_content.shape
     assert raw_row == test_data_length - to_skip_lines
     assert raw_col == test_data_col
@@ -58,6 +59,7 @@ def test_data_load_skip_specific_lines():
         "MyTestPlatform", "Test", SAMPLE_DATA, skip_rows=to_skip_specific
     )
 
+    test_data_skip_specific.convert_fields()
     raw_row, raw_col = test_data_skip_specific.billing_content.shape
     assert raw_row == test_data_length - len(to_skip_specific)
     assert raw_col == test_data_col
@@ -71,7 +73,7 @@ def test_data_load_multiply():
     )
 
     baseline_sum = pd.read_csv(SAMPLE_DATA)["EffectiveCost"].sum()
-    test_data_skip.render()
+    test_data_skip.convert_fields()
 
     assert (
         test_data_skip.harness_focus_content["EffectiveCost"].sum()
@@ -87,6 +89,8 @@ def test_data_convert():
         SAMPLE_DATA,
         converters={"BillingAccountId": lambda x: "FakeAccountID"},
     )
+
+    test_data_convert.load_and_convert_data()
 
     assert (
         test_data_convert.billing_content.iloc[0]["BillingAccountId"] == "FakeAccountID"
@@ -116,6 +120,8 @@ def test_data_null_provider(tmpdir):
         filename,
     )
 
+    test_data_provider.load_and_convert_data()
+
     assert (
         test_data_provider.billing_content.iloc[0]["ProviderName"]
         == "MyTestPlatformTest"
@@ -130,7 +136,7 @@ def test_data_mapping(tmpdir):
 
     test_data_remap = Focus("MyTestPlatform", "Test", filename, mapping=mapped_col)
 
-    test_data_remap.render()
+    test_data_remap.convert_fields()
 
     assert len(test_data_remap.harness_focus_content["SkuId"]) == test_data_length
 
@@ -143,7 +149,7 @@ def test_data_mapping_empty(tmpdir):
         mapping={},
     )
 
-    assert test_data_empty.render() is not None
+    assert test_data_empty.convert_fields() is not None
 
     test_data_none = Focus(
         "MyTestPlatform",
@@ -152,7 +158,7 @@ def test_data_mapping_empty(tmpdir):
         mapping=None,
     )
 
-    assert test_data_none.render() is not None
+    assert test_data_none.convert_fields() is not None
 
 
 def test_additional_columns(tmpdir):
@@ -163,7 +169,7 @@ def test_additional_columns(tmpdir):
         additional_columns={"ConsumedQuantity": 1, "NonFocusField": "Value"},
     )
 
-    assert test_data_add.render() is not None
+    assert test_data_add.convert_fields() is not None
     assert test_data_add.harness_focus_content.iloc[0]["ConsumedQuantity"] == 1
     assert (
         test_data_add.harness_focus_content.iloc[test_data_length - 1][

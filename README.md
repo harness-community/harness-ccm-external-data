@@ -199,3 +199,22 @@ pull the example focus csv: `curl -LO https://raw.githubusercontent.com/FinOps-O
 install [poetry](https://python-poetry.org/docs/#installation)
 
 testing: `make test`
+
+## built-in focus conversions
+
+users may contribute a platform-specific subclass of the focus object to handle special cases in their billing exports.
+
+### mongodb atlas
+
+```python
+from harness_ccm_external_data import MongoDBAtlas
+
+atlas = MongoDBAtlas(
+    "MongoDB Atlas",
+    "My Company Inc.",
+    "usage-summary-8765434567887656789-20250201.csv",
+    harness_account_id=getenv("HARNESS_ACCOUNT_ID"),
+    harness_platform_api_key=getenv("HARNESS_PLATFORM_API_KEY"),
+)
+atlas.upload()
+```

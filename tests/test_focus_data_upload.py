@@ -33,8 +33,8 @@ def test_data_upload():
         SAMPLE_DATA,
         cost_multiplier=random.uniform(1.0, 2.0),
         converters={
-            "BillingPeriodStart": lambda _: "2025-5-01 00:00:00",
-            "BillingPeriodEnd": lambda _: "2025-6-01 00:00:00",
+            "BillingPeriodStart": lambda _: "2025-5-01T00:00:00",
+            "BillingPeriodEnd": lambda _: "2025-6-01T00:00:00",
             "BillingAccountId": lambda _: billing_account_id,
             "BillingAccountName": lambda _: "Billing Account Name",
             "SubAccountId": lambda _: random.randint(100000000000, 999999999999),
@@ -44,7 +44,7 @@ def test_data_upload():
         harness_platform_api_key=getenv("HARNESS_PLATFORM_API_KEY"),
     )
 
-    assert may_data.upload() is True
+    assert may_data.upload() is not None
 
     june_data = Focus(
         "Testing Upload",
@@ -52,8 +52,8 @@ def test_data_upload():
         SAMPLE_DATA,
         cost_multiplier=random.uniform(1.0, 2.0),
         converters={
-            "BillingPeriodStart": lambda _: "2025-6-01 00:00:00",
-            "BillingPeriodEnd": lambda _: "2025-7-01 00:00:00",
+            "BillingPeriodStart": lambda _: "2025-6-01T00:00:00",
+            "BillingPeriodEnd": lambda _: "2025-7-01T00:00:00",
             "BillingAccountId": lambda _: billing_account_id,
             "BillingAccountName": lambda _: "Billing Account Name",
             "SubAccountId": lambda _: random.randint(100000000000, 999999999999),
@@ -64,4 +64,4 @@ def test_data_upload():
         harness_platform_api_key=getenv("HARNESS_PLATFORM_API_KEY"),
     )
 
-    assert june_data.upload() is True
+    assert june_data.upload() is not None

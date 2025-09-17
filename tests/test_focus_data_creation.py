@@ -53,9 +53,11 @@ def test_passing_df():
     df = Focus.create_dataset(TEST_DATA)
     test = Focus("MyTestPlatform", "Test", df)
 
+    test.load_and_convert_data()
+
     assert set(HARNESS_FIELDS).issubset(set(test.billing_content.columns))
 
-    test.render()
+    test.convert_fields()
 
     assert test.harness_focus_content is not None
     assert not test.harness_focus_content.empty
