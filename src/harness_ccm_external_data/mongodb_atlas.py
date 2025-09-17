@@ -56,7 +56,7 @@ class MongoDBAtlas(Focus):
             separator,
             skip_rows,
             cost_multiplier,
-            converters,
+            {MONGODB_ATLAS_MAPPING["ChargeCategory"]: lambda x: "Credit" if "credit" in x.lower() else "Usage"} | converters,
             additional_columns,
             validate,
             harness_platform_api_key,

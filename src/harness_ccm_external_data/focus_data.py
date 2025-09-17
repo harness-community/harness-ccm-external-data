@@ -437,7 +437,7 @@ class Focus:
 
     def upload(
         self, harness_platform_api_key: str = None, harness_account_id: str = None
-    ):
+    ) -> str | None:
         """
         Upload the Harness-CSV data to Harness
 
@@ -446,7 +446,7 @@ class Focus:
             harness_account_id (str): Account ID for Harness
 
         Returns:
-            bool: True if all steps completed successfully, False otherwise
+            str | None: Object name if all steps completed successfully, None otherwise
         """
 
         if harness_platform_api_key:
@@ -465,19 +465,19 @@ class Focus:
         # Ensure we have a provider
         if self.provider_uuid is None:
             if not self._create_provider():
-                return False
+                return None
 
         # If no invoice_period is provided, calculate it from the data
         this_invoice_period = self._get_invoice_period()
         if not this_invoice_period:
             print("Failed to determine invoice period from data")
-            return False
+            return None
 
         # Check if file has already been uploaded
         for file in self.list_files():
             if file["md5"] == md5_hash:
                 print(f"File already uploaded: {md5_hash}")
-                return False
+                return None
 
         # Generate a unique object name
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -491,12 +491,12 @@ class Focus:
         )
         if not signed_url:
             print("Failed to get signed URL")
-            return False
+            return None
 
         # Step 2: Upload to GCS
         if not self._upload_to_gcs(signed_url, csv_content):
             print("Failed to upload to GCS")
-            return False
+            return None
 
         # Extract the GCS URL from the signed URL (remove query parameters)
         cloud_storage_path = signed_url.split("?")[0]
@@ -511,14 +511,14 @@ class Focus:
             cloud_storage_path,
         ):
             print("Failed to mark upload as complete")
-            return False
+            return None
 
         # Step 4: Trigger ingestion
         if not self._trigger_ingestion(self.provider_uuid, [this_invoice_period]):
             print("Failed to trigger ingestion")
-            return False
+            return None
 
-        return True
+        return object_name
 
     def create_dataset(data: list(list()) = None) -> pd.DataFrame:
         """
