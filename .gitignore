@@ -199,3 +199,5 @@ cython_debug/
 # terraform modules
 *terraform*
 builds
+
+test.py

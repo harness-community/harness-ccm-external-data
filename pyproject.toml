@@ -6,7 +6,7 @@ authors = [
     {name = "Riley Snyder",email = "riley.snyder@harness.io"}
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "pandas (>=2.3.0,<3.0.0)",
     "requests (>=2.32.4,<3.0.0)"
