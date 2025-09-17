@@ -44,6 +44,10 @@ class MongoDBAtlas(Focus):
         validate: bool = True,
         harness_platform_api_key: str = None,
         harness_account_id: str = None,
+        # mongodb atlas specific
+        tag_column_start: int = 19,
+        resource_id_column_start: int = 10,
+        resource_id_column_end: int = 14,
     ):
         super().__init__(
             provider,
@@ -62,18 +66,23 @@ class MongoDBAtlas(Focus):
             harness_platform_api_key,
             harness_account_id,
         )
+        self.tag_column_start = tag_column_start
+        self.resource_id_column_start = resource_id_column_start
+        self.resource_id_column_end = resource_id_column_end
 
     def convert_fields(self) -> pd.DataFrame:
         super().convert_fields()
 
         # create resource id using Cluster/Replica Set/Config Server/Application
         self.harness_focus_content["ResourceId"] = self.billing_content[
-            self.billing_content.columns[10:14]
+            self.billing_content.columns[
+                self.resource_id_column_start:self.resource_id_column_end
+            ]
         ].apply(lambda x: "/".join(x.dropna().astype(str)), axis=1)
 
         # Take individual tag columns and combine them into the focus_data format dictionary.
         self.harness_focus_content["Tags"] = self.billing_content[
-            self.billing_content.columns[19:]
+            self.billing_content.columns[self.tag_column_start:]
         ].apply(
             lambda x: {
                 key.split("/")[1]: str(value)
