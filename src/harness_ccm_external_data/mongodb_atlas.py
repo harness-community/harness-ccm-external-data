@@ -45,8 +45,11 @@ class MongoDBAtlas(Focus):
         harness_platform_api_key: str = None,
         harness_account_id: str = None,
         # mongodb atlas specific
+        ## tag column start is the column number of the first tag column
         tag_column_start: int = 19,
+        ## resource id column start is the column number of the cluster column, used to create a resource id
         resource_id_column_start: int = 10,
+        ## resource id column end is the column number of the application column, used to create a resource id
         resource_id_column_end: int = 14,
     ):
         super().__init__(
