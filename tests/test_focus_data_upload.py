@@ -33,8 +33,8 @@ def test_data_upload():
         SAMPLE_DATA,
         cost_multiplier=random.uniform(1.0, 2.0),
         converters={
-            "BillingPeriodStart": lambda _: "2025-5-01 00:00:00",
-            "BillingPeriodEnd": lambda _: "2025-6-01 00:00:00",
+            "BillingPeriodStart": lambda _: "2025-05-01T00:00:00Z",
+            "BillingPeriodEnd": lambda _: "2025-06-01T00:00:00Z",
             "BillingAccountId": lambda _: billing_account_id,
             "BillingAccountName": lambda _: "Billing Account Name",
             "SubAccountId": lambda _: random.randint(100000000000, 999999999999),
@@ -52,8 +52,8 @@ def test_data_upload():
         SAMPLE_DATA,
         cost_multiplier=random.uniform(1.0, 2.0),
         converters={
-            "BillingPeriodStart": lambda _: "2025-6-01 00:00:00",
-            "BillingPeriodEnd": lambda _: "2025-7-01 00:00:00",
+            "BillingPeriodStart": lambda _: "2025-06-01T00:00:00Z",
+            "BillingPeriodEnd": lambda _: "2025-07-01T00:00:00Z",
             "BillingAccountId": lambda _: billing_account_id,
             "BillingAccountName": lambda _: "Billing Account Name",
             "SubAccountId": lambda _: random.randint(100000000000, 999999999999),
