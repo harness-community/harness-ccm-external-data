@@ -383,7 +383,7 @@ class Focus:
             start_date_str = self.harness_focus_content["BillingPeriodStart"].iloc[0]
 
             # Parse the dates
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d %H:%M:%S")
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%SZ")
 
             # Calculate the first day of the month for the start date
             period_start = start_date.replace(day=1)
