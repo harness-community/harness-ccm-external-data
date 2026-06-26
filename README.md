@@ -185,12 +185,17 @@ there are patterns provided for extracting, transforming, and loading external d
 ### data loading settings
 
 - `RENDER_FILE`: file path to render harness-focus data to
-- `PROVIDER`: 
-- `CSV_FILE`: 
-- `MAPPING`: 
-- `SKIP_ROWS`: 
-- `COST_MULTIPLIER`: 
-- `VALIDATE`: 
+- `PROVIDER`: provider name (e.g., AWS, GCP, s3)
+- `DATA_SOURCE`: data source name (e.g., "custom", "Payer Account 1")
+- `CSV_FILE`: path to the CSV file to process
+- `MAPPING`: JSON object mapping FOCUS fields to CSV columns
+- `SKIP_ROWS`: number of rows to skip at the beginning of CSV
+- `COST_MULTIPLIER`: multiplier to apply to cost values
+- `VALIDATE`: validate column names (default: true)
+- `NORMALIZE_DATES`: convert dates to extended ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)
+- `HARNESS_ACCOUNT_ID`: Harness account identifier
+- `HARNESS_PLATFORM_API_KEY`: Harness API key
+- `UPLOAD`: set to "true" to upload data to Harness
 
 ## development
 

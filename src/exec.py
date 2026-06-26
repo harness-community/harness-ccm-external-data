@@ -56,6 +56,20 @@ if __name__ == "__main__":
     if not (validate := bool(getenv(f"{prefix}VALIDATE"))):
         validate = True
 
+    normalize_dates = bool(getenv(f"{prefix}NORMALIZE_DATES"))
+
+    harness_platform_api_key = getenv(f"{prefix}HARNESS_PLATFORM_API_KEY")
+    harness_account_id = getenv(f"{prefix}HARNESS_ACCOUNT_ID")
+
+    # If upload is requested, validate that credentials are provided
+    if getenv(f"{prefix}UPLOAD"):
+        if not harness_platform_api_key:
+            print("ERROR: HARNESS_PLATFORM_API_KEY is required when UPLOAD=true")
+            exit(1)
+        if not harness_account_id:
+            print("ERROR: HARNESS_ACCOUNT_ID is required when UPLOAD=true")
+            exit(1)
+
     focus = Focus(
         provider=provider,
         data_source=data_source,
@@ -66,8 +80,9 @@ if __name__ == "__main__":
         skip_rows=skip_rows,
         cost_multiplier=cost_multiplier,
         validate=validate,
-        harness_platform_api_key=getenv(f"{prefix}HARNESS_PLATFORM_API_KEY"),
-        harness_account_id=getenv(f"{prefix}HARNESS_ACCOUNT_ID"),
+        normalize_dates=normalize_dates,
+        harness_platform_api_key=harness_platform_api_key,
+        harness_account_id=harness_account_id,
     )
 
     if destination_file := getenv(f"{prefix}RENDER_FILE"):

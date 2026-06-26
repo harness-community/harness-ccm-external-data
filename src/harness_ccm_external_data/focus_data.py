@@ -48,9 +48,39 @@ class Focus:
         converters (Dict[str, callable]): Custom converters for columns
         additional_columns (Dict[str, str]): Additional columns to add to the source data with a static value
         validate (bool): Validate columns
+        normalize_dates (bool): Convert dates to extended ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)
         harness_platform_api_key (str): API key for Harness platform
         harness_account_id (str): Account ID for Harness
     """
+
+    @staticmethod
+    def _normalize_date(date_str):
+        """
+        Convert date string to extended ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ).
+        Handles both formats:
+        - '2024-09-01 00:00:00' (space separator)
+        - '2024-09-01T00:00:00Z' (already in extended format)
+        """
+        if pd.isna(date_str) or date_str == '':
+            return date_str
+
+        date_str = str(date_str).strip()
+
+        # If already in extended ISO 8601 format, return as is
+        if 'T' in date_str and date_str.endswith('Z'):
+            return date_str
+
+        # Try parsing common formats
+        for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d']:
+            try:
+                dt = datetime.strptime(date_str, fmt)
+                return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                continue
+
+        # If no format matched, return original
+        print(f"WARNING: Could not parse date '{date_str}', returning as-is")
+        return date_str
 
     def __init__(
         self,
@@ -67,6 +97,7 @@ class Focus:
         converters: Dict[str, callable] = {},
         additional_columns: Dict[str, str] = {},
         validate: bool = True,
+        normalize_dates: bool = False,
         harness_platform_api_key: str = None,
         harness_account_id: str = None,
     ):
@@ -78,6 +109,7 @@ class Focus:
         self.source = source
         self.cost_multiplier = cost_multiplier
         self.converters = converters
+        self.normalize_dates = normalize_dates
         self.additional_columns = {}
         for field, value in additional_columns.items():
             if field not in HARNESS_FIELDS:
@@ -102,14 +134,21 @@ class Focus:
             and (self.harness_platform_api_key is not None)
             and (self.harness_account_id is not None)
         ):
-            for provider in self._list_providers():
+            providers = self._list_providers()
+            print(f"Checking for existing provider: name='{self.data_source}', providerName='{self.provider}'")
+            print(f"Found {len(providers)} existing provider(s)")
+
+            for provider in providers:
+                print(f"  Evaluating provider: name='{provider.get('name')}', providerName='{provider.get('providerName')}'")
                 if (
-                    provider["name"] == self.data_source
-                    and provider["providerName"] == self.provider
+                    provider.get("name") == self.data_source
+                    and provider.get("providerName") == self.provider
                 ):
-                    self.provider_uuid = provider["uuid"]
+                    self.provider_uuid = provider.get("uuid")
+                    print(f"Found matching provider with UUID: {self.provider_uuid}")
                     break
             else:
+                print("No matching provider found, creating new provider...")
                 self._create_provider()
 
         # restrict fields to ones supported by ccm
@@ -133,6 +172,13 @@ class Focus:
             baseline_converters[self.mapping["EffectiveCost"]] = (
                 lambda x: pd.to_numeric(x) * cost_multiplier
             )
+
+        if normalize_dates:
+            # Convert date fields to extended ISO 8601 format
+            date_fields = ["BillingPeriodStart", "BillingPeriodEnd", "ChargePeriodStart", "ChargePeriodEnd"]
+            for field in date_fields:
+                if self.mapping[field] not in baseline_converters:
+                    baseline_converters[self.mapping[field]] = self._normalize_date
 
         self.billing_content = (
             self.source
@@ -181,6 +227,7 @@ class Focus:
         """
         List all providers in the account
         """
+        print("Fetching existing providers from Harness...")
         resp = post(
             "https://app.harness.io/gateway/ccm/api/externaldata/provider/list",
             params={
@@ -193,7 +240,9 @@ class Focus:
         )
 
         if resp.status_code == 200:
-            return resp.json().get("data", [])
+            providers = resp.json().get("data", [])
+            print(f"Successfully fetched {len(providers)} provider(s)")
+            return providers
         else:
             print(f"Failed to list providers: {resp.status_code} - {resp.text}")
             return []
@@ -203,6 +252,7 @@ class Focus:
         Given a provider name and type, create a provider in harness
         """
 
+        print(f"Creating provider: name='{self.data_source}', providerName='{self.provider}', providerType='{self.provider_type}'")
         resp = post(
             "https://app.harness.io/gateway/ccm/api/externaldata/provider",
             params={
@@ -224,9 +274,10 @@ class Focus:
 
         if resp.status_code == 200:
             self.provider_uuid = resp.json().get("data", {}).get("uuid")
+            print(f"Successfully created provider with UUID: {self.provider_uuid}")
             return self.provider_uuid
         else:
-            print(f"Failed to get provider UUID: {resp.status_code} - {resp.text}")
+            print(f"Failed to create provider: {resp.status_code} - {resp.text}")
             return None
 
     def _delete_provider(self):
@@ -377,13 +428,26 @@ class Focus:
         Calculate the invoice period from BillingPeriodStart and BillingPeriodEnd.
         Returns a string in the format YYYYMMDD-YYYYMMDD where it's the first day of the month
         the data is for and the first day of the next month.
+        Supports both date formats:
+        - Extended ISO 8601: '2024-09-01T00:00:00Z'
+        - Standard format: '2024-09-01 00:00:00'
         """
         try:
-            # Get the first row's BillingPeriodStart and BillingPeriodEnd
-            start_date_str = self.harness_focus_content["BillingPeriodStart"].iloc[0]
+            # Get the first row's BillingPeriodStart
+            start_date_str = str(self.harness_focus_content["BillingPeriodStart"].iloc[0]).strip()
 
-            # Parse the dates
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M:%SZ")
+            # Try parsing both formats
+            start_date = None
+            for fmt in ['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d']:
+                try:
+                    start_date = datetime.strptime(start_date_str, fmt)
+                    break
+                except ValueError:
+                    continue
+
+            if start_date is None:
+                print(f"Error: Could not parse date '{start_date_str}' with any known format")
+                return None
 
             # Calculate the first day of the month for the start date
             period_start = start_date.replace(day=1)
