@@ -95,6 +95,25 @@ def test_normalize_date_unrecognized_format():
     assert Focus._normalize_date(value) == value
 
 
+def test_normalize_date_timezone_offset_negative():
+    # PDT / UTC-7: midnight local = 07:00 UTC
+    assert Focus._normalize_date("2026-06-29 00:00:00-07:00") == "2026-06-29T07:00:00Z"
+
+
+def test_normalize_date_timezone_offset_positive():
+    # UTC+5:30 (IST): midnight local = previous day 18:30 UTC
+    assert Focus._normalize_date("2026-06-29 00:00:00+05:30") == "2026-06-28T18:30:00Z"
+
+
+def test_normalize_date_timezone_utc_plus_zero():
+    # Explicit +00:00 treated same as Z
+    assert Focus._normalize_date("2026-06-29 00:00:00+00:00") == "2026-06-29T00:00:00Z"
+
+
+def test_normalize_date_timezone_t_separator_with_offset():
+    assert Focus._normalize_date("2026-06-29T00:00:00-07:00") == "2026-06-29T07:00:00Z"
+
+
 def test_normalize_date_output_is_valid_iso8601():
     from datetime import datetime
 
@@ -175,6 +194,24 @@ def test_normalize_dates_present_in_rendered_output(tmpdir):
     result = pd.read_csv(output_path, dtype=str)
     for col, expected in EXPECTED_ISO.items():
         assert result.iloc[0][col] == expected
+
+
+def test_normalize_dates_with_timezone_offset(tmpdir):
+    csv_path = str(tmpdir.join("sample.csv"))
+    _write_sample_csv(csv_path, {
+        "BillingPeriodStart": "2026-06-01 00:00:00-07:00",
+        "BillingPeriodEnd": "2026-07-01 00:00:00-07:00",
+        "ChargePeriodStart": "2026-06-29 00:00:00-07:00",
+        "ChargePeriodEnd": "2026-06-30 00:00:00-07:00",
+    })
+
+    focus = Focus("Snowflake", "Test", csv_path, normalize_dates=True)
+    row = focus.billing_content.iloc[0]
+
+    assert row["BillingPeriodStart"] == "2026-06-01T07:00:00Z"
+    assert row["BillingPeriodEnd"] == "2026-07-01T07:00:00Z"
+    assert row["ChargePeriodStart"] == "2026-06-29T07:00:00Z"
+    assert row["ChargePeriodEnd"] == "2026-06-30T07:00:00Z"
 
 
 def test_normalize_works_with_mixed_date_formats(tmpdir):

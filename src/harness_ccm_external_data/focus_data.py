@@ -1,6 +1,6 @@
 from typing import Dict, Sequence, Optional
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
 
 import pandas as pd
@@ -57,9 +57,8 @@ class Focus:
     def _normalize_date(date_str):
         """
         Convert date string to extended ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ).
-        Handles both formats:
-        - '2024-09-01 00:00:00' (space separator)
-        - '2024-09-01T00:00:00Z' (already in extended format)
+        Handles naive and timezone-aware inputs, converting to UTC when a
+        timezone offset is present (e.g. '2026-06-29 00:00:00-07:00' → UTC).
         """
         if pd.isna(date_str) or date_str == '':
             return date_str
@@ -70,10 +69,18 @@ class Focus:
         if 'T' in date_str and date_str.endswith('Z'):
             return date_str
 
-        # Try parsing common formats
-        for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d']:
+        # Try parsing common formats, including timezone-aware variants
+        for fmt in [
+            '%Y-%m-%d %H:%M:%S',
+            '%Y-%m-%dT%H:%M:%S',
+            '%Y-%m-%d',
+            '%Y-%m-%d %H:%M:%S%z',
+            '%Y-%m-%dT%H:%M:%S%z',
+        ]:
             try:
                 dt = datetime.strptime(date_str, fmt)
+                if dt.tzinfo is not None:
+                    dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
                 return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
             except ValueError:
                 continue
@@ -436,11 +443,20 @@ class Focus:
             # Get the first row's BillingPeriodStart
             start_date_str = str(self.harness_focus_content["BillingPeriodStart"].iloc[0]).strip()
 
-            # Try parsing both formats
+            # Try parsing common formats, including timezone-aware variants
             start_date = None
-            for fmt in ['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d']:
+            for fmt in [
+                '%Y-%m-%dT%H:%M:%SZ',
+                '%Y-%m-%d %H:%M:%S',
+                '%Y-%m-%dT%H:%M:%S',
+                '%Y-%m-%d',
+                '%Y-%m-%d %H:%M:%S%z',
+                '%Y-%m-%dT%H:%M:%S%z',
+            ]:
                 try:
                     start_date = datetime.strptime(start_date_str, fmt)
+                    if start_date.tzinfo is not None:
+                        start_date = start_date.astimezone(timezone.utc).replace(tzinfo=None)
                     break
                 except ValueError:
                     continue
